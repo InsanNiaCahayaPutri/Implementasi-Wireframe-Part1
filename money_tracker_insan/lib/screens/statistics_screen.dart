@@ -1,0 +1,11 @@
+import 'package:flutter/material.dart';
+
+class StatisticsScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Statistik Keuangan")),
+      body: Center(child: Text("Grafik Statistik Keuangan")),
+    );
+  }
+}
