@@ -10,7 +10,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-
   final service = TransactionService.instance;
 
   @override
@@ -130,13 +129,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: ListView.builder(
                   itemCount: service.getTransactions().length,
                   itemBuilder: (context, index) {
-
                     final t = service.getTransactions()[index];
 
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor:
-                            t.isIncome ? Colors.green : Colors.red,
+                        backgroundColor: t.isIncome ? Colors.green : Colors.red,
                         child: Icon(
                           t.isIncome
                               ? Icons.arrow_downward
@@ -145,8 +142,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       title: Text(t.title),
-                      subtitle:
-                          Text(t.isIncome ? "Pemasukan" : "Pengeluaran"),
+                      subtitle: Text(t.isIncome ? "Pemasukan" : "Pengeluaran"),
                       trailing: Text(
                         "${t.isIncome ? '+' : '-'} Rp ${t.amount.toStringAsFixed(0)}",
                       ),
@@ -163,9 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => AddTransactionScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => AddTransactionScreen()),
           );
 
           if (result == true) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // TAMBAHAN
 import '../models/transaction.dart';
 import '../services/transaction_service.dart';
 
@@ -15,6 +16,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   bool isIncome = true;
   DateTime selectedDate = DateTime.now();
+
+  // TAMBAHAN KATEGORI
+  String selectedCategory = "";
+  final List<String> categories = [
+    "Makan",
+    "Transport",
+    "Belanja",
+    "Gaji",
+    "Hiburan",
+  ];
 
   Future<void> pickDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -82,6 +93,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
               const SizedBox(height: 15),
 
+              // TEXTFIELD LAMA (TIDAK DIHAPUS)
               TextField(
                 controller: title,
                 decoration: const InputDecoration(
@@ -89,12 +101,46 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
               ),
 
+              // TAMBAHAN KATEGORI
+              const SizedBox(height: 10),
+
+              const Text(
+                "Pilih Kategori Cepat",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 10),
+
+              Wrap(
+                spacing: 10,
+                children: categories.map((category) {
+                  final isSelected = selectedCategory == category;
+
+                  return ChoiceChip(
+                    label: Text(category),
+                    selected: isSelected,
+                    onSelected: (_) {
+                      setState(() {
+                        selectedCategory = category;
+                        title.text = category; // isi otomatis
+                      });
+                    },
+                    selectedColor: Colors.green,
+                  );
+                }).toList(),
+              ),
+
               const SizedBox(height: 15),
 
+              // NOMINAL (DITAMBAH FORMAT)
               TextField(
                 controller: amount,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: "Nominal"),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: const InputDecoration(
+                  labelText: "Nominal",
+                  prefixText: "Rp ",
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -147,7 +193,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
                     TransactionService.instance.addTransaction(newTransaction);
 
-                    Navigator.pop(context, true); // kirim sinyal ke dashboard
+                    Navigator.pop(context, true);
                   },
                   child: const Text("Simpan"),
                 ),
