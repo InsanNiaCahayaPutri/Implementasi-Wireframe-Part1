@@ -10,15 +10,93 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
   bool isIncomeSelected = true;
+  int selectedMonth = DateTime.now().month;
+
+  // 🔹 FORMAT BULAN MANUAL
+  String getMonthName(int month) {
+    const months = [
+      "Januari",
+      "Februari",
+      "Maret",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Agustus",
+      "September",
+      "Oktober",
+      "November",
+      "Desember",
+    ];
+    return months[month - 1];
+  }
+
+  // 🔹 GRAFIK SEDERHANA
+  Widget buildSimpleChart(Map<String, double> data) {
+    double max = 0;
+    for (var v in data.values) {
+      if (v > max) max = v;
+    }
+
+    return Column(
+      children: data.entries.map((entry) {
+        double percent = max == 0 ? 0 : entry.value / max;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(entry.key),
+              const SizedBox(height: 5),
+              Container(
+                height: 10,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: percent,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isIncomeSelected ? Colors.green : Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final service = TransactionService.instance;
     final transactions = service.getTransactions();
 
-    final filtered = transactions
-        .where((t) => t.isIncome == isIncomeSelected)
-        .toList();
+    // 🔹 FILTER
+    final filtered = transactions.where((t) {
+      return t.isIncome == isIncomeSelected && t.date.month == selectedMonth;
+    }).toList();
+
+    // 🔹 TOTAL
+    double total = filtered.fold(0, (sum, t) => sum + t.amount);
+
+    // 🔹 GROUP
+    Map<String, double> grouped = {};
+    for (var t in filtered) {
+      grouped[t.title] = (grouped[t.title] ?? 0) + t.amount;
+    }
+
+    // 🔹 INSIGHT
+    String topCategory = grouped.isEmpty
+        ? "-"
+        : grouped.entries.reduce((a, b) => a.value > b.value ? a : b).key;
 
     return Scaffold(
       body: SafeArea(
@@ -27,7 +105,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔹 TITLE
               const Text(
                 "Statistik",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -35,26 +112,87 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
               const SizedBox(height: 20),
 
-              // 🔹 CARD ATAS (SUMMARY / CHART PLACEHOLDER)
+              // 🔹 CARD TOTAL
               Container(
-                height: 120,
                 width: double.infinity,
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(15),
+                  color: isIncomeSelected ? Colors.green : Colors.red,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.arrow_outward),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isIncomeSelected
+                          ? "Total Pemasukan"
+                          : "Total Pengeluaran",
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "Rp ${total.toStringAsFixed(0)}",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // 🔹 FILTER BULAN
+              GestureDetector(
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime(DateTime.now().year, selectedMonth),
+                    firstDate: DateTime(2023),
+                    lastDate: DateTime(2030),
+                  );
+
+                  if (picked != null) {
+                    setState(() {
+                      selectedMonth = picked.month;
+                    });
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 15,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today, size: 18),
+                          const SizedBox(width: 10),
+                          Text(
+                            "${getMonthName(selectedMonth)} ${DateTime.now().year}",
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                      const Icon(Icons.arrow_forward_ios, size: 16),
+                    ],
                   ),
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              // 🔹 TOGGLE BUTTON (Keluar / Masuk)
+              // 🔹 TOGGLE
               Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
@@ -107,50 +245,72 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
               const SizedBox(height: 20),
 
-              // 🔹 DIVIDER + ICON
-              Row(
-                children: [
-                  const Icon(Icons.arrow_downward),
-                  const SizedBox(width: 10),
-                  Expanded(child: Divider(color: Colors.black)),
-                ],
+              // 🔹 GRAFIK
+              buildSimpleChart(grouped),
+
+              const SizedBox(height: 15),
+
+              // 🔹 INSIGHT
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Text(
+                  "Kategori terbesar: $topCategory",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
 
               const SizedBox(height: 15),
 
-              // 🔹 LIST DATA
+              // 🔹 LIST
               Expanded(
-                child: filtered.isEmpty
+                child: grouped.isEmpty
                     ? const Center(child: Text("Belum ada data"))
-                    : ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final t = filtered[index];
-
+                    : ListView(
+                        children: grouped.entries.map((entry) {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),
                             padding: const EdgeInsets.all(15),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(15),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black12, blurRadius: 5),
+                              ],
                             ),
                             child: Row(
                               children: [
-                                Icon(
-                                  t.isIncome
-                                      ? Icons.arrow_downward
-                                      : Icons.arrow_upward,
-                                  color: t.isIncome ? Colors.green : Colors.red,
+                                CircleAvatar(
+                                  backgroundColor: isIncomeSelected
+                                      ? Colors.green.withOpacity(0.2)
+                                      : Colors.red.withOpacity(0.2),
+                                  child: Icon(
+                                    isIncomeSelected
+                                        ? Icons.arrow_downward
+                                        : Icons.arrow_upward,
+                                    color: isIncomeSelected
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
                                 ),
                                 const SizedBox(width: 10),
-                                Expanded(child: Text(t.title)),
-                                Text(
-                                  "${t.isIncome ? '+' : '-'} Rp ${t.amount.toStringAsFixed(0)}",
+                                Expanded(
+                                  child: Text(
+                                    entry.key,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
+                                Text("Rp ${entry.value.toStringAsFixed(0)}"),
                               ],
                             ),
                           );
-                        },
+                        }).toList(),
                       ),
               ),
             ],
