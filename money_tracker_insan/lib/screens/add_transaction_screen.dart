@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/transaction.dart';
+import '../services/transaction_service.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -133,11 +135,19 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           content: Text("Isi semua data terlebih dahulu"),
                         ),
                       );
-
                       return;
                     }
 
-                    Navigator.pop(context);
+                    final newTransaction = TransactionModel(
+                      title: title.text,
+                      amount: double.parse(amount.text),
+                      date: selectedDate,
+                      isIncome: isIncome,
+                    );
+
+                    TransactionService.instance.addTransaction(newTransaction);
+
+                    Navigator.pop(context, true); // kirim sinyal ke dashboard
                   },
                   child: const Text("Simpan"),
                 ),
