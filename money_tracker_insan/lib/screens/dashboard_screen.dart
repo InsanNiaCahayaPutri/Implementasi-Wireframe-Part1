@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'add_transaction_screen.dart';
 import '../services/transaction_service.dart';
+import 'income_screen.dart';
+import 'expense_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -60,20 +62,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // BUTTON
               Row(
-                children: const [
+                children: [
                   Expanded(
-                    child: _InfoBox(
-                      title: "Pemasukan",
-                      icon: Icons.arrow_downward,
-                      color: Colors.green,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const IncomeScreen(),
+                          ),
+                        );
+                      },
+                      child: const _InfoBox(
+                        title: "Pemasukan",
+                        icon: Icons.arrow_downward,
+                        color: Colors.green,
+                      ),
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: _InfoBox(
-                      title: "Pengeluaran",
-                      icon: Icons.arrow_upward,
-                      color: Colors.red,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ExpenseScreen(),
+                          ),
+                        );
+                      },
+                      child: const _InfoBox(
+                        title: "Pengeluaran",
+                        icon: Icons.arrow_upward,
+                        color: Colors.red,
+                      ),
                     ),
                   ),
                 ],
