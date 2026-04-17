@@ -1,12 +1,9 @@
 import '../models/transaction.dart';
 
 class TransactionService {
-  // singleton (biar bisa dipakai di semua screen)
   static final TransactionService instance = TransactionService._internal();
 
-  factory TransactionService() {
-    return instance;
-  }
+  factory TransactionService() => instance;
 
   TransactionService._internal();
 
@@ -20,17 +17,21 @@ class TransactionService {
     _transactions.add(transaction);
   }
 
+  void deleteTransaction(TransactionModel transaction) {
+    _transactions.remove(transaction);
+  }
+
   double getBalance() {
-    double balance = 0;
+    double total = 0;
 
     for (var t in _transactions) {
       if (t.isIncome) {
-        balance += t.amount;
+        total += t.amount;
       } else {
-        balance -= t.amount;
+        total -= t.amount;
       }
     }
 
-    return balance;
+    return total;
   }
 }

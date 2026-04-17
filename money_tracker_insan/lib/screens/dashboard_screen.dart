@@ -28,32 +28,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 20),
 
-              // CARD SALDO
+              // SALDO
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.green,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
                 ),
-
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Total Balance",
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                      "Total Saldo",
+                      style: TextStyle(color: Colors.white70),
                     ),
-
                     const SizedBox(height: 10),
-
                     Text(
                       "Rp ${service.getBalance().toStringAsFixed(0)}",
                       style: const TextStyle(
@@ -68,49 +58,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 20),
 
-              // BUTTON INCOME & EXPENSE
+              // BUTTON
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: const [
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 5),
-                        ],
-                      ),
-                      child: const Column(
-                        children: [
-                          Icon(Icons.arrow_downward, color: Colors.green),
-                          SizedBox(height: 5),
-                          Text("Income"),
-                        ],
-                      ),
+                    child: _InfoBox(
+                      title: "Pemasukan",
+                      icon: Icons.arrow_downward,
+                      color: Colors.green,
                     ),
                   ),
-
-                  const SizedBox(width: 15),
-
+                  SizedBox(width: 10),
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 5),
-                        ],
-                      ),
-                      child: const Column(
-                        children: [
-                          Icon(Icons.arrow_upward, color: Colors.red),
-                          SizedBox(height: 5),
-                          Text("Expense"),
-                        ],
-                      ),
+                    child: _InfoBox(
+                      title: "Pengeluaran",
+                      icon: Icons.arrow_upward,
+                      color: Colors.red,
                     ),
                   ),
                 ],
@@ -119,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 25),
 
               const Text(
-                "Recent Transactions",
+                "Riwayat Transaksi",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
@@ -131,20 +94,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   itemBuilder: (context, index) {
                     final t = service.getTransactions()[index];
 
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: t.isIncome ? Colors.green : Colors.red,
-                        child: Icon(
-                          t.isIncome
-                              ? Icons.arrow_downward
-                              : Icons.arrow_upward,
-                          color: Colors.white,
-                        ),
+                    return Dismissible(
+                      key: Key(t.hashCode.toString()),
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
                       ),
-                      title: Text(t.title),
-                      subtitle: Text(t.isIncome ? "Pemasukan" : "Pengeluaran"),
-                      trailing: Text(
-                        "${t.isIncome ? '+' : '-'} Rp ${t.amount.toStringAsFixed(0)}",
+                      onDismissed: (_) {
+                        service.deleteTransaction(t);
+                        setState(() {});
+                      },
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: t.isIncome
+                              ? Colors.green
+                              : Colors.red,
+                          child: Icon(
+                            t.isIncome
+                                ? Icons.arrow_downward
+                                : Icons.arrow_upward,
+                            color: Colors.white,
+                          ),
+                        ),
+                        title: Text(t.title),
+                        subtitle: Text(
+                          t.isIncome ? "Pemasukan" : "Pengeluaran",
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "${t.isIncome ? '+' : '-'} Rp ${t.amount.toStringAsFixed(0)}",
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        AddTransactionScreen(),
+                                  ),
+                                );
+                                setState(() {});
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -159,7 +157,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddTransactionScreen()),
+            MaterialPageRoute(
+              builder: (context) => const AddTransactionScreen(),
+            ),
           );
 
           if (result == true) {
@@ -167,6 +167,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
         },
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+// WIDGET BOX
+class _InfoBox extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+
+  const _InfoBox({
+    required this.title,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(height: 5),
+          Text(title),
+        ],
       ),
     );
   }
