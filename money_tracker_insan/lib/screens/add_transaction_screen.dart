@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // TAMBAHAN
+import 'package:flutter/services.dart';
 import '../models/transaction.dart';
 import '../services/transaction_service.dart';
 
@@ -17,14 +17,21 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   bool isIncome = true;
   DateTime selectedDate = DateTime.now();
 
-  // TAMBAHAN KATEGORI
   String selectedCategory = "";
-  final List<String> categories = [
-    "Makan",
-    "Transport",
-    "Belanja",
-    "Gaji",
-    "Hiburan",
+
+  // KATEGORI INCOME
+  final List<Map<String, dynamic>> incomeCategories = [
+    {"name": "Gaji", "icon": Icons.attach_money, "color": Colors.green},
+    {"name": "Bonus", "icon": Icons.card_giftcard, "color": Colors.blue},
+    {"name": "Investasi", "icon": Icons.trending_up, "color": Colors.orange},
+  ];
+
+  // KATEGORI EXPENSE
+  final List<Map<String, dynamic>> expenseCategories = [
+    {"name": "Makan", "icon": Icons.fastfood, "color": Colors.red},
+    {"name": "Transport", "icon": Icons.directions_car, "color": Colors.blue},
+    {"name": "Belanja", "icon": Icons.shopping_bag, "color": Colors.purple},
+    {"name": "Hiburan", "icon": Icons.movie, "color": Colors.orange},
   ];
 
   Future<void> pickDate(BuildContext context) async {
@@ -35,7 +42,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       lastDate: DateTime(2030),
     );
 
-    if (picked != null && picked != selectedDate) {
+    if (picked != null) {
       setState(() {
         selectedDate = picked;
       });
@@ -44,12 +51,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final categories = isIncome ? incomeCategories : expenseCategories;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Tambah Transaksi")),
-
       body: Padding(
         padding: const EdgeInsets.all(20),
-
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,11 +78,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       onChanged: (value) {
                         setState(() {
                           isIncome = value!;
+                          selectedCategory = ""; // reset
                         });
                       },
                     ),
                   ),
-
                   Expanded(
                     child: RadioListTile(
                       title: const Text("Expense"),
@@ -84,6 +91,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       onChanged: (value) {
                         setState(() {
                           isIncome = value!;
+                          selectedCategory = ""; // reset
                         });
                       },
                     ),
@@ -93,46 +101,65 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
               const SizedBox(height: 15),
 
-              // TEXTFIELD LAMA (TIDAK DIHAPUS)
-              TextField(
-                controller: title,
-                decoration: const InputDecoration(
-                  labelText: "Kategori / Nama Transaksi",
-                ),
-              ),
-
-              // TAMBAHAN KATEGORI
-              const SizedBox(height: 10),
-
               const Text(
-                "Pilih Kategori Cepat",
+                "Kategori",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 10),
 
-              Wrap(
-                spacing: 10,
-                children: categories.map((category) {
-                  final isSelected = selectedCategory == category;
+              // GRID KATEGORI
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: categories.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  final isSelected = selectedCategory == category["name"];
 
-                  return ChoiceChip(
-                    label: Text(category),
-                    selected: isSelected,
-                    onSelected: (_) {
+                  return GestureDetector(
+                    onTap: () {
                       setState(() {
-                        selectedCategory = category;
-                        title.text = category; // isi otomatis
+                        selectedCategory = category["name"];
+                        title.text = category["name"];
                       });
                     },
-                    selectedColor: Colors.green,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? category["color"].withOpacity(0.2)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: isSelected
+                              ? category["color"]
+                              : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(category["icon"], color: category["color"]),
+                          const SizedBox(height: 5),
+                          Text(
+                            category["name"],
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
-                }).toList(),
+                },
               ),
 
               const SizedBox(height: 15),
 
-              // NOMINAL (DITAMBAH FORMAT)
+              // NOMINAL
               TextField(
                 controller: amount,
                 keyboardType: TextInputType.number,
@@ -157,9 +184,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 children: [
                   Text(
                     "${selectedDate.day}-${selectedDate.month}-${selectedDate.year}",
-                    style: const TextStyle(fontSize: 16),
                   ),
-
                   ElevatedButton(
                     onPressed: () {
                       pickDate(context);
@@ -175,17 +200,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (title.text.isEmpty || amount.text.isEmpty) {
+                    if (selectedCategory.isEmpty || amount.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Isi semua data terlebih dahulu"),
-                        ),
+                        const SnackBar(content: Text("Isi semua data")),
                       );
                       return;
                     }
 
                     final newTransaction = TransactionModel(
-                      title: title.text,
+                      title: selectedCategory,
                       amount: double.parse(amount.text),
                       date: selectedDate,
                       isIncome: isIncome,
