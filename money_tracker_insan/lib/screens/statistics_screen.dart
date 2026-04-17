@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../services/transaction_service.dart';
 
 class StatisticsScreen extends StatefulWidget {
@@ -12,7 +13,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   bool isIncomeSelected = true;
   int selectedMonth = DateTime.now().month;
 
-  // 🔹 FORMAT BULAN MANUAL
+  // 🔹 FORMAT BULAN
   String getMonthName(int month) {
     const months = [
       "Januari",
@@ -31,46 +32,83 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return months[month - 1];
   }
 
-  // 🔹 GRAFIK SEDERHANA
-  Widget buildSimpleChart(Map<String, double> data) {
-    double max = 0;
-    for (var v in data.values) {
-      if (v > max) max = v;
-    }
+  // 🔹 PIE CHART (BEDA MASUK & KELUAR)
+  Widget buildPieChart(Map<String, double> grouped) {
+    final total = grouped.values.fold(0.0, (sum, v) => sum + v);
+
+    final incomeColors = [Colors.green, Colors.lightGreen, Colors.teal];
+
+    final expenseColors = [Colors.red, Colors.orange, Colors.deepOrange];
+
+    final colors = isIncomeSelected ? incomeColors : expenseColors;
 
     return Column(
-      children: data.entries.map((entry) {
-        double percent = max == 0 ? 0 : entry.value / max;
+      children: [
+        SizedBox(
+          height: 220,
+          child: grouped.isEmpty
+              ? const Center(child: Text("Tidak ada data"))
+              : PieChart(
+                  PieChartData(
+                    sections: List.generate(grouped.length, (index) {
+                      final entry = grouped.entries.elementAt(index);
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(entry.key),
-              const SizedBox(height: 5),
-              Container(
-                height: 10,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: percent,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isIncomeSelected ? Colors.green : Colors.red,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                      final percentage = ((entry.value / total) * 100)
+                          .toStringAsFixed(1);
+
+                      final color = colors[index % colors.length];
+
+                      return PieChartSectionData(
+                        value: entry.value,
+                        title: "$percentage%",
+                        radius: 60,
+                        color: color,
+                        titleStyle: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      );
+                    }),
                   ),
                 ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // 🔹 LEGEND
+        Column(
+          children: List.generate(grouped.length, (index) {
+            final entry = grouped.entries.elementAt(index);
+            final color = colors[index % colors.length];
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    isIncomeSelected
+                        ? Icons.arrow_downward
+                        : Icons.arrow_upward,
+                    color: color,
+                  ),
+                  const SizedBox(width: 8),
+
+                  Expanded(child: Text(entry.key)),
+
+                  Text(
+                    "Rp ${entry.value.toStringAsFixed(0)}",
+                    style: TextStyle(
+                      color: isIncomeSelected ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
-      }).toList(),
+            );
+          }),
+        ),
+      ],
     );
   }
 
@@ -105,9 +143,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Statistik",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Text(
+                isIncomeSelected
+                    ? "Statistik Pemasukan"
+                    : "Statistik Pengeluaran",
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -245,8 +288,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
               const SizedBox(height: 20),
 
-              // 🔹 GRAFIK
-              buildSimpleChart(grouped),
+              // 🔹 PIE CHART
+              buildPieChart(grouped),
 
               const SizedBox(height: 15),
 
@@ -262,56 +305,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   "Kategori terbesar: $topCategory",
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-              ),
-
-              const SizedBox(height: 15),
-
-              // 🔹 LIST
-              Expanded(
-                child: grouped.isEmpty
-                    ? const Center(child: Text("Belum ada data"))
-                    : ListView(
-                        children: grouped.entries.map((entry) {
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(15),
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black12, blurRadius: 5),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: isIncomeSelected
-                                      ? Colors.green.withOpacity(0.2)
-                                      : Colors.red.withOpacity(0.2),
-                                  child: Icon(
-                                    isIncomeSelected
-                                        ? Icons.arrow_downward
-                                        : Icons.arrow_upward,
-                                    color: isIncomeSelected
-                                        ? Colors.green
-                                        : Colors.red,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    entry.key,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Text("Rp ${entry.value.toStringAsFixed(0)}"),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
               ),
             ],
           ),
