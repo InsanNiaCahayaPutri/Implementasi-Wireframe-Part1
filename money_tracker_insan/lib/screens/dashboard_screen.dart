@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'add_transaction_screen.dart';
+import '../services/transaction_service.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+
+  final service = TransactionService.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -36,19 +45,19 @@ class DashboardScreen extends StatelessWidget {
                   ],
                 ),
 
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Total Balance",
                       style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
 
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
                     Text(
-                      "Rp 5.000.000",
-                      style: TextStyle(
+                      "Rp ${service.getBalance().toStringAsFixed(0)}",
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -118,28 +127,31 @@ class DashboardScreen extends StatelessWidget {
               const SizedBox(height: 10),
 
               Expanded(
-                child: ListView(
-                  children: const [
-                    ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.red,
-                        child: Icon(Icons.fastfood, color: Colors.white),
-                      ),
-                      title: Text("Makan"),
-                      subtitle: Text("Pengeluaran"),
-                      trailing: Text("- Rp 20.000"),
-                    ),
+                child: ListView.builder(
+                  itemCount: service.getTransactions().length,
+                  itemBuilder: (context, index) {
 
-                    ListTile(
+                    final t = service.getTransactions()[index];
+
+                    return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Colors.green,
-                        child: Icon(Icons.attach_money, color: Colors.white),
+                        backgroundColor:
+                            t.isIncome ? Colors.green : Colors.red,
+                        child: Icon(
+                          t.isIncome
+                              ? Icons.arrow_downward
+                              : Icons.arrow_upward,
+                          color: Colors.white,
+                        ),
                       ),
-                      title: Text("Gaji"),
-                      subtitle: Text("Pemasukan"),
-                      trailing: Text("+ Rp 2.000.000"),
-                    ),
-                  ],
+                      title: Text(t.title),
+                      subtitle:
+                          Text(t.isIncome ? "Pemasukan" : "Pengeluaran"),
+                      trailing: Text(
+                        "${t.isIncome ? '+' : '-'} Rp ${t.amount.toStringAsFixed(0)}",
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -148,11 +160,17 @@ class DashboardScreen extends StatelessWidget {
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddTransactionScreen()),
+            MaterialPageRoute(
+              builder: (context) => AddTransactionScreen(),
+            ),
           );
+
+          if (result == true) {
+            setState(() {});
+          }
         },
         child: const Icon(Icons.add),
       ),
