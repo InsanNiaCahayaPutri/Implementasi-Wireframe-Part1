@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'add_transaction_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -147,7 +148,12 @@ class DashboardScreen extends StatelessWidget {
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddTransactionScreen()),
+          );
+        },
         child: const Icon(Icons.add),
       ),
     );
