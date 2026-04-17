@@ -179,19 +179,38 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
               const SizedBox(height: 10),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "${selectedDate.day}-${selectedDate.month}-${selectedDate.year}",
+              GestureDetector(
+                onTap: () {
+                  pickDate(context);
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 15,
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      pickDate(context);
-                    },
-                    child: const Text("Pilih Tanggal"),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.grey.shade300),
                   ),
-                ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today, size: 18),
+                          const SizedBox(width: 10),
+                          Text(
+                            "${selectedDate.day}-${selectedDate.month}-${selectedDate.year}",
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                      const Icon(Icons.arrow_forward_ios, size: 16),
+                    ],
+                  ),
+                ),
               ),
 
               const SizedBox(height: 30),
