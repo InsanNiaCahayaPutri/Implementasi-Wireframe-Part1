@@ -13,7 +13,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   bool isIncomeSelected = true;
   int selectedMonth = DateTime.now().month;
 
-  // 🔹 FORMAT BULAN
   String getMonthName(int month) {
     const months = [
       "Januari",
@@ -32,13 +31,21 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return months[month - 1];
   }
 
-  // 🔹 PIE CHART (BEDA MASUK & KELUAR)
   Widget buildPieChart(Map<String, double> grouped) {
     final total = grouped.values.fold(0.0, (sum, v) => sum + v);
 
-    final incomeColors = [Colors.green, Colors.lightGreen, Colors.teal];
+    // 💜 SOFT COLOR SYSTEM (NO CLASH)
+    final incomeColors = [
+      const Color(0xFF4CAF50),
+      const Color(0xFF66BB6A),
+      const Color(0xFF81C784),
+    ];
 
-    final expenseColors = [Colors.red, Colors.orange, Colors.deepOrange];
+    final expenseColors = [
+      const Color(0xFFE57373),
+      const Color(0xFFEF5350),
+      const Color(0xFFE53935),
+    ];
 
     final colors = isIncomeSelected ? incomeColors : expenseColors;
 
@@ -47,12 +54,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         SizedBox(
           height: 220,
           child: grouped.isEmpty
-              ? const Center(child: Text("Tidak ada data"))
+              ? const Center(
+                  child: Text(
+                    "Tidak ada data",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                )
               : PieChart(
                   PieChartData(
                     sections: List.generate(grouped.length, (index) {
                       final entry = grouped.entries.elementAt(index);
-
                       final percentage = ((entry.value / total) * 100)
                           .toStringAsFixed(1);
 
@@ -76,7 +87,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
         const SizedBox(height: 20),
 
-        // 🔹 LEGEND
+        // LEGEND
         Column(
           children: List.generate(grouped.length, (index) {
             final entry = grouped.entries.elementAt(index);
@@ -94,12 +105,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   ),
                   const SizedBox(width: 8),
 
-                  Expanded(child: Text(entry.key)),
+                  Expanded(
+                    child: Text(
+                      entry.key,
+                      style: const TextStyle(color: Colors.black87),
+                    ),
+                  ),
 
                   Text(
                     "Rp ${entry.value.toStringAsFixed(0)}",
-                    style: TextStyle(
-                      color: isIncomeSelected ? Colors.green : Colors.red,
+                    style: const TextStyle(
+                      color: Colors.black87,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -117,26 +133,23 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final service = TransactionService.instance;
     final transactions = service.getTransactions();
 
-    // 🔹 FILTER
     final filtered = transactions.where((t) {
       return t.isIncome == isIncomeSelected && t.date.month == selectedMonth;
     }).toList();
 
-    // 🔹 TOTAL
     double total = filtered.fold(0, (sum, t) => sum + t.amount);
 
-    // 🔹 GROUP
     Map<String, double> grouped = {};
     for (var t in filtered) {
       grouped[t.title] = (grouped[t.title] ?? 0) + t.amount;
     }
 
-    // 🔹 INSIGHT
     String topCategory = grouped.isEmpty
         ? "-"
         : grouped.entries.reduce((a, b) => a.value > b.value ? a : b).key;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7FF),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -150,17 +163,20 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              // 🔹 CARD TOTAL
+              // 💜 TOTAL CARD (UNGU CLEAN)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: isIncomeSelected ? Colors.green : Colors.red,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6C63FF), Color(0xFF8A84FF)],
+                  ),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -187,7 +203,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
               const SizedBox(height: 20),
 
-              // 🔹 FILTER BULAN
+              // 📅 MONTH PICKER
               GestureDetector(
                 onTap: () async {
                   final picked = await showDatePicker(
@@ -205,14 +221,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 15,
-                  ),
+                  padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.grey.shade300),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                      ),
+                    ],
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -235,11 +253,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
               const SizedBox(height: 20),
 
-              // 🔹 TOGGLE
+              // TOGGLE
               Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Row(
@@ -288,22 +306,30 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
               const SizedBox(height: 20),
 
-              // 🔹 PIE CHART
               buildPieChart(grouped),
 
               const SizedBox(height: 15),
 
-              // 🔹 INSIGHT
+              // INSIGHT CARD
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
                 child: Text(
                   "Kategori terbesar: $topCategory",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
             ],

@@ -17,7 +17,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 232, 232, 238),
+      backgroundColor: const Color(0xFFF7F7FF),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),

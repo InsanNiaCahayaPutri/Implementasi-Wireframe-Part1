@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
+
   runApp(const MoneyTrackerApp());
 }
 
@@ -16,7 +24,6 @@ class MoneyTrackerApp extends StatelessWidget {
 
       theme: ThemeData(
         primaryColor: const Color(0xFF6C63FF),
-
         scaffoldBackgroundColor: const Color(0xFFF7F7FF),
 
         colorScheme: ColorScheme.fromSeed(
@@ -44,7 +51,6 @@ class MoneyTrackerApp extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF6C63FF),
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
