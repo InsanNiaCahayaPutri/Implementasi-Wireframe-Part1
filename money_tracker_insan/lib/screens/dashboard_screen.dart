@@ -17,6 +17,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 232, 232, 238),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -25,17 +26,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               const Text(
                 "Dashboard",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
 
               const SizedBox(height: 20),
 
-              // SALDO
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6C63FF), Color(0xFF8A84FF)],
+                  ),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -60,7 +66,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 20),
 
-              // BUTTON
               Row(
                 children: [
                   Expanded(
@@ -76,7 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: const _InfoBox(
                         title: "Pemasukan",
                         icon: Icons.arrow_downward,
-                        color: Colors.green,
+                        color: Color(0xFF4CAF50),
                       ),
                     ),
                   ),
@@ -94,7 +99,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: const _InfoBox(
                         title: "Pengeluaran",
                         icon: Icons.arrow_upward,
-                        color: Colors.red,
+                        color: Color(0xFFE57373),
                       ),
                     ),
                   ),
@@ -105,7 +110,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const Text(
                 "Riwayat Transaksi",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
 
               const SizedBox(height: 10),
@@ -119,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     return Dismissible(
                       key: Key(t.hashCode.toString()),
                       background: Container(
-                        color: Colors.red,
+                        color: Color(0xFFE57373),
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 20),
                         child: const Icon(Icons.delete, color: Colors.white),
@@ -131,8 +140,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: t.isIncome
-                              ? Colors.green
-                              : Colors.red,
+                              ? Color(0xFF4CAF50)
+                              : Color(0xFFE57373),
                           child: Icon(
                             t.isIncome
                                 ? Icons.arrow_downward
@@ -140,15 +149,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             color: Colors.white,
                           ),
                         ),
-                        title: Text(t.title),
+                        title: Text(
+                          t.title,
+                          style: const TextStyle(color: Colors.black87),
+                        ),
                         subtitle: Text(
                           t.isIncome ? "Pemasukan" : "Pengeluaran",
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 0, 0, 0),
+                          ),
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               "${t.isIncome ? '+' : '-'} Rp ${t.amount.toStringAsFixed(0)}",
+                              style: const TextStyle(color: Colors.black87),
                             ),
                             IconButton(
                               icon: const Icon(Icons.edit),
@@ -157,7 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        AddTransactionScreen(),
+                                        const AddTransactionScreen(),
                                   ),
                                 );
                                 setState(() {});
@@ -176,6 +192,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
 
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF6C63FF),
         onPressed: () async {
           final result = await Navigator.push(
             context,
@@ -194,7 +212,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// WIDGET BOX
 class _InfoBox extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -213,12 +230,21 @@ class _InfoBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+        ],
       ),
       child: Column(
         children: [
           Icon(icon, color: color),
           const SizedBox(height: 5),
-          Text(title),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
